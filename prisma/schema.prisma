@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // mysql | sqlite
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  isCompleted Boolean  @default(false)
+  priority    Int      @default(1)
+  dueDate     DateTime?
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  checklistItems ChecklistItem[]
+  taskTags       TaskTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChecklistItem {
+  id          Int      @id @default(autoincrement())
+  content     String
+  isCompleted Boolean  @default(false)
+
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  color String?
+
+  taskTags TaskTag[]
+}
+
+model TaskTag {
+  taskId Int
+  tagId  Int
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId]) // composite primary key
+}
+
